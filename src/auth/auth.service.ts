@@ -3,12 +3,17 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { PasswordUtil } from 'src/helpers/password-hash';
 import { LoginDto, UserDto } from './auth.dto';
+import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class AuthService {
-  constructor(@InjectModel('User') private userModel: Model<UserDto>) {}
+  constructor(
+    @InjectModel('User') private userModel: Model<UserDto>,
+    private jwtService: JwtService,
+  ) {}
 
   async createUser(userDto: UserDto) {
+    const email = userDto.email.toLowerCase();
     const existingUser = await this.userModel.findOne({ email: userDto.email });
     if (existingUser) {
       return {
@@ -17,8 +22,11 @@ export class AuthService {
       };
     }
     const hashedPassword = await PasswordUtil.encryptPassword(userDto.password);
-    userDto.password = hashedPassword;
-    const newUser = new this.userModel(userDto);
+    const newUser = new this.userModel({
+      ...userDto,
+      email: email,
+      password: hashedPassword,
+    });
     await newUser.save();
     return { success: true, message: 'Account created success', user: newUser };
   }
@@ -39,6 +47,13 @@ export class AuthService {
     if (!isValidPass) {
       return { success: false, message: 'password is invalid' };
     }
-    return { success: true, message: 'logged in successfully' };
+    const payload = { sub: existingUser.email, userId: existingUser._id };
+    return {
+      success: true,
+      message: 'logged in successfully',
+      access_token: await this.jwtService.signAsync(payload, {
+        secret: 'defaultKey',
+      }),
+    };
   }
 }

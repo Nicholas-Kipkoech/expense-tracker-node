@@ -11,6 +11,7 @@ export const UserSchema = new Schema(
       enum: ['admin', 'normal_user'],
       default: 'normal_user',
     },
+    password: { type: String, required: true },
   },
   { timestamps: true },
 );
