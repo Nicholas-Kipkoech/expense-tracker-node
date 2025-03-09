@@ -31,4 +31,12 @@ export class WalletService {
     await wallet.save();
     return ApiResponse(true, 'wallet debited successfully', wallet.balance);
   }
+
+  // Get specific user wallet
+  async getUserWallet(userID: string) {
+    const userWallet = await this.walletModel.findOne({ userId: userID });
+    if (userWallet) {
+      return userWallet;
+    }
+  }
 }

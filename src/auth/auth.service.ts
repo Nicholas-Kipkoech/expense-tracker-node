@@ -63,7 +63,12 @@ export class AuthService {
     if (!isValidPass) {
       return ApiResponse(false, 'password is invalid', null);
     }
-    const payload = { sub: existingUser.email, userId: existingUser._id };
+    const wallet = await this.walletService.getUserWallet(existingUser.email);
+    const payload = {
+      sub: existingUser.email,
+      userId: existingUser._id,
+      userWallet: wallet,
+    };
     return ApiResponse(true, 'logged in successfully', {
       accessToken: await this.jwtService.signAsync(payload, {
         secret: 'defaultKey',
