@@ -1,25 +1,31 @@
+import { MailerService } from '@nestjs-modules/mailer';
 import { Injectable } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
+import { ApiResponse } from 'src/helpers/api-response.service';
 import { PasswordUtil } from 'src/helpers/password-hash';
+import { WalletService } from 'src/wallet/wallet.service';
 import { LoginDto, UserDto } from './auth.dto';
-import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class AuthService {
   constructor(
     @InjectModel('User') private userModel: Model<UserDto>,
     private jwtService: JwtService,
+    private walletService: WalletService,
+    private mailerService: MailerService,
   ) {}
-
+  /**
+   *
+   * @param userDto user Request for creating the body
+   * @returns
+   */
   async createUser(userDto: UserDto) {
     const email = userDto.email.toLowerCase();
     const existingUser = await this.userModel.findOne({ email: userDto.email });
     if (existingUser) {
-      return {
-        success: false,
-        message: `${existingUser.email} already exists!`,
-      };
+      return ApiResponse(false, `${existingUser.email} already exists!`, null);
     }
     const hashedPassword = await PasswordUtil.encryptPassword(userDto.password);
     const newUser = new this.userModel({
@@ -28,32 +34,40 @@ export class AuthService {
       password: hashedPassword,
     });
     await newUser.save();
-    return { success: true, message: 'Account created success', user: newUser };
+    /** use user email as userID */
+    const userID = newUser.email;
+    await this.walletService.createUserWallet(userID);
+    await this.mailerService.sendMail({
+      to: newUser.email,
+      subject: 'Account created successfully',
+      text: `Dear ${newUser.firstName} ${newUser.lastName} \n . Your account has been created successfully`,
+    });
+    return ApiResponse(true, 'account created successfully', newUser);
   }
+  // User Login handler
   async userLogin(loginDto: LoginDto) {
     const existingUser = await this.userModel.findOne({
       email: loginDto.email,
     });
     if (!existingUser) {
-      return {
-        success: false,
-        message: 'Account not found! Contact the admnistrator',
-      };
+      return ApiResponse(
+        false,
+        'Account not found! Contact the admnistrator',
+        null,
+      );
     }
     const isValidPass = await PasswordUtil.comparePassword(
       loginDto.password,
       existingUser.password,
     );
     if (!isValidPass) {
-      return { success: false, message: 'password is invalid' };
+      return ApiResponse(false, 'password is invalid', null);
     }
     const payload = { sub: existingUser.email, userId: existingUser._id };
-    return {
-      success: true,
-      message: 'logged in successfully',
-      access_token: await this.jwtService.signAsync(payload, {
+    return ApiResponse(true, 'logged in successfully', {
+      accessToken: await this.jwtService.signAsync(payload, {
         secret: 'defaultKey',
       }),
-    };
+    });
   }
 }

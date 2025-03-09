@@ -1,11 +1,10 @@
+import { MailerModule } from '@nestjs-modules/mailer';
 import { Module } from '@nestjs/common';
+import { MongooseModule } from '@nestjs/mongoose';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { MongooseModule } from '@nestjs/mongoose';
-import { ExpenseModule } from './expense/expense.module';
 import { AuthModule } from './auth/auth.module';
-import { WalletController } from './wallet/wallet.controller';
-import { WalletService } from './wallet/wallet.service';
+import { ExpenseModule } from './expense/expense.module';
 import { WalletModule } from './wallet/wallet.module';
 
 @Module({
@@ -13,11 +12,22 @@ import { WalletModule } from './wallet/wallet.module';
     MongooseModule.forRoot(
       'mongodb+srv://kipkoech:kipkoech@nicktest.g7qzhuz.mongodb.net/expense-tracker?retryWrites=true&w=majority&appName=NickTest',
     ),
+    MailerModule.forRoot({
+      transport: {
+        host: 'smtp.gmail.com', // Use your email provider’s SMTP server
+        port: 587,
+        secure: false, // True for 465, false for other ports
+        auth: {
+          user: 'nickey968@gmail.com', // Set in .env file
+          pass: 'grba fdgl punj ysie', // Set in .env file
+        },
+      },
+    }),
     ExpenseModule,
     AuthModule,
     WalletModule,
   ],
-  controllers: [AppController, WalletController],
-  providers: [AppService, WalletService],
+  controllers: [AppController],
+  providers: [AppService],
 })
 export class AppModule {}

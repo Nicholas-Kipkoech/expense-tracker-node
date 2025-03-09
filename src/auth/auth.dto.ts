@@ -1,3 +1,12 @@
+export interface User {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  dob: Date;
+  password: string;
+}
+
 export class UserDto {
   id: string;
   firstName: string;

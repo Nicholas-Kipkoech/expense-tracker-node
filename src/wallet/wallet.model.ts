@@ -4,7 +4,7 @@ export const walletSchema = new Schema(
   {
     userId: String,
     name: String,
-    balance: String,
+    balance: Number,
     currency: String,
   },
   { timestamps: true },
