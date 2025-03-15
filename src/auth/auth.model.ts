@@ -12,6 +12,7 @@ export const UserSchema = new Schema(
       default: 'normal_user',
     },
     password: { type: String, required: true },
+    profilePicture: { type: String },
   },
   { timestamps: true },
 );

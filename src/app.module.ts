@@ -6,6 +6,7 @@ import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
 import { ExpenseModule } from './expense/expense.module';
 import { WalletModule } from './wallet/wallet.module';
+import { FileUploadService } from './file-upload/file-upload.service';
 
 @Module({
   imports: [
@@ -28,6 +29,6 @@ import { WalletModule } from './wallet/wallet.module';
     WalletModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, FileUploadService],
 })
 export class AppModule {}

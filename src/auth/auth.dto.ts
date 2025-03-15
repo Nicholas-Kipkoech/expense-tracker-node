@@ -5,6 +5,7 @@ export interface User {
   email: string;
   dob: Date;
   password: string;
+  profilePicture: string;
 }
 
 export class UserDto {
@@ -14,6 +15,7 @@ export class UserDto {
   email: string;
   dob: Date;
   password: string;
+  profilePicture: string;
 }
 
 export class LoginDto {
